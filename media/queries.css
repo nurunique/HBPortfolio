@@ -1,0 +1,75 @@
+@media (max-width: 600px) { /* Styles for small phones */ 
+    /* Adjust navigation for mobile */
+    .nav ul {
+        display: none;
+    }
+    .nav_icon {
+        display: block;
+    }
+    .logo img{
+        margin-left: -35px;
+        width: 120px;
+        height: auto;
+    } 
+    /* section_1 adjustments */
+    .section_1{
+        height: 600px;
+        h1{
+            font-size: 20px;
+            line-height: 34px;
+        }
+        p{
+            font-size: 14px;
+            line-height: 20px;
+            margin-top: 10px;
+            color: black;
+            opacity: 0.7;
+        }
+    .theme_img img{
+        position: absolute;
+        width: 330px;
+        top: -250px;
+        right: 10px;
+        z-index: 0;
+    }
+    .theme_text{
+        z-index: 1;
+        margin-left: -30px;
+    }
+}
+.section_2{
+    justify-content: center;
+    .about_text{
+        position: absolute;
+        margin: 60px;
+    }
+    h1{
+        font-size: 20px;
+        line-height: 30px;
+    }
+}
+.section_3{
+    margin-left: 20px;
+    margin-right: 20px;
+    .s3_title{
+        h1{
+            font-size: 20px;
+            width: 600px;
+        }
+        p{
+            width: 400px;
+
+        }
+    }
+}
+}
+
+@media (min-width: 601px) and (max-width: 991px) { /* Styles for tablets */ }
+@media (min-width: 768px) { /* Styles for tablets/larger */ }
+@media (min-width: 1024px) { /* Styles for desktops */ }
+@media (orientation: landscape) { /* Styles for landscape mode */ }
+@media (prefers-reduced-motion: reduce) { /* Turn off animations */ }
+@media (prefers-color-scheme: dark) { /* Dark mode styles */ }
+@media (min-resolution: 2dppx) { /* High-resolution screens */ }
+@media (hover: hover) { /* Styles for devices that support hover */ }
+@media (pointer: coarse) { /* Styles for touch devices */ }
