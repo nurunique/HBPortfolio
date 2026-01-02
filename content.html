@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Futuristic City - Curved Paths 1080p</title>
+    <style>
+        body { margin: 0; background: #000; overflow: hidden; display: flex; justify-content: center; align-items: center; height: 100vh; background-image:url(/Firefox_wallpaper.png); }
+        canvas { background: #010105; width: 960px; height: 540px; border: 1px solid #333; }
+        #recordBtn {
+            position: fixed; top: 20px; left: 20px; z-index: 1000;
+            padding: 12px 24px; background: #7000ff; color: white;
+            border: none; border-radius: 4px; cursor: pointer; font-weight: bold;
+            font-family: 'Segoe UI', sans-serif; transition: 0.3s;
+        }
+        #recordBtn:hover { background: #00f2ff; color: #000; }
+    </style>
+</head>
+<body>
+
+    <button id="recordBtn">START RECORDING (15S)</button>
+    <canvas id="cityCanvas" width="1920" height="1080"></canvas>
+
+    <script>
+        const canvas = document.getElementById('cityCanvas');
+        const ctx = canvas.getContext('2d');
+        const W = 1920;
+        const H = 1080;
+
+        let cameraX = 0;
+        const buildings = [];
+        const vehicles = [];
+        const colors = ['#00f2ff', '#7000ff', '#ff00d4', '#00ff95'];
+
+        // Initialize Smaller Buildings with Antennas
+        function createBuildings(layer, count, widthRange, heightRange, speed) {
+            for (let i = 0; i < count; i++) {
+                buildings.push({
+                    x: Math.random() * W * 2.5,
+                    w: widthRange[0] + Math.random() * (widthRange[1] - widthRange[0]),
+                    h: heightRange[0] + Math.random() * (heightRange[1] - heightRange[0]),
+                    layer, speed,
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    antenna: Math.random() > 0.5
+                });
+            }
+        }
+
+        createBuildings(0, 50, [20, 50], [80, 200], 0.3); // Deep Background
+        createBuildings(1, 40, [40, 70], [150, 350], 0.8); // Midground
+        createBuildings(2, 20, [60, 100], [300, 500], 1.8); // Foreground
+
+        // Vehicles with Slow Speed and Curved Logic
+        for (let i = 0; i < 25; i++) {
+            vehicles.push({ 
+                x: Math.random() * W, 
+                baseY: 100 + Math.random() * 700, 
+                speed: 1.5 + Math.random() * 2.5, // Much slower
+                amplitude: 20 + Math.random() * 50, // Height of the curve
+                frequency: 0.002 + Math.random() * 0.005, // Smoothness of curve
+                phase: Math.random() * Math.PI * 2,
+                size: 2.5, 
+                color: colors[Math.floor(Math.random() * colors.length)] 
+            });
+        }
+
+        function draw() {
+            // Dark night sky
+            ctx.fillStyle = '#020206';
+            ctx.fillRect(0, 0, W, H);
+
+            // Subtle Stars
+            ctx.fillStyle = "#ffffff";
+            for(let i=0; i<50; i++) {
+                ctx.globalAlpha = 0.2;
+                ctx.fillRect((i*137)%W, (i*555)%H, 2, 2);
+            }
+            ctx.globalAlpha = 1.0;
+
+            // Draw Buildings
+            buildings.forEach(b => {
+                let drawX = (b.x - (cameraX * b.speed)) % (W * 2.5);
+                if (drawX < -b.w) drawX += (W * 2.5);
+
+                const topY = H - b.h;
+
+                // Building Main Shape
+                ctx.fillStyle = '#080812';
+                ctx.fillRect(drawX, topY, b.w, b.h);
+                
+                // Neon Accent Lines
+                ctx.strokeStyle = b.color;
+                ctx.lineWidth = 1.5;
+                ctx.strokeRect(drawX, topY, b.w, b.h);
+
+                // Antennas
+                if (b.antenna) {
+                    ctx.beginPath();
+                    ctx.moveTo(drawX + b.w/2, topY);
+                    ctx.lineTo(drawX + b.w/2, topY - 30);
+                    ctx.stroke();
+                    // Blinking tip
+                    if (Math.sin(Date.now() * 0.005) > 0) {
+                        ctx.fillStyle = b.color;
+                        ctx.fillRect(drawX + b.w/2 - 2, topY - 32, 4, 4);
+                    }
+                }
+            });
+
+            // Curved Flying Particles (Slow & Smooth)
+            vehicles.forEach(v => {
+                v.x += v.speed;
+                // Vertical curve logic using Sine wave
+                const currentY = v.baseY + Math.sin(v.x * v.frequency + v.phase) * v.amplitude;
+
+                if (v.x > W + 100) v.x = -100;
+
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = v.color;
+                ctx.fillStyle = v.color;
+                
+                // Draw head
+                ctx.fillRect(v.x, currentY, 15, v.size);
+                
+                // Draw trailing path
+                ctx.globalAlpha = 0.4;
+                for (let j = 1; j < 10; j++) {
+                    const prevX = v.x - (j * 4);
+                    const prevY = v.baseY + Math.sin(prevX * v.frequency + v.phase) * v.amplitude;
+                    ctx.fillRect(prevX, prevY, 4, v.size);
+                }
+                
+                ctx.globalAlpha = 1.0;
+                ctx.shadowBlur = 0;
+            });
+
+            cameraX += 0.8; // Slow horizontal pan
+            requestAnimationFrame(draw);
+        }
+        draw();
+
+        // Recording
+        const btn = document.getElementById('recordBtn');
+        const stream = canvas.captureStream(60); 
+        const recorder = new MediaRecorder(stream, { 
+            mimeType: 'video/webm; codecs=vp9',
+            videoBitsPerSecond: 12000000 
+        });
+        
+        const chunks = [];
+        btn.onclick = () => {
+            recorder.start();
+            btn.textContent = "RECORDING (15s)...";
+            btn.style.background = "#ff4444";
+            setTimeout(() => { recorder.stop(); }, 15000);
+        };
+
+        recorder.ondataavailable = e => chunks.push(e.data);
+        recorder.onstop = () => {
+            const blob = new Blob(chunks, { type: 'video/webm' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'curved_city_1080p.webm';
+            a.click();
+            btn.textContent = "START RECORDING (15S)";
+            btn.style.background = "#7000ff";
+        };
+    </script>
+</body>
+</html>
